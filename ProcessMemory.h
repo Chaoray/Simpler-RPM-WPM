@@ -23,6 +23,11 @@ class Mem {
         }
     }
 
+    ~Mem() {
+        CloseHandle(_pHandle);
+    }
+
+
     template <typename TADDR>
     Mem& read(TADDR address, SIZE_T nSize) {
         _isReadOrWrite = true;
