@@ -3,6 +3,19 @@ A simpler way to do RPM or WPM
 
 ## Usage:  
 
+Before:
+```cpp
+HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, 1144);
+SIZE_T NumberOfBytesRead;
+ReadProcessMemory(
+    hProcess,
+    (LPCVOID)ptr2int,
+    &intRead,
+    sizeof(intRead),
+    &NumberOfBytesRead
+);
+```
+
 Basic usage:
 ```cpp
 #include "ProcessMemory.h"
@@ -21,14 +34,14 @@ int intRead;
 mem.read(
     ptr2int,            // address
     sizeof(intRead)     // size
-    ) >> intRead;       // buffer
+) >> intRead;           // buffer
 
 // WRITE
 int intWrite = 10;
 mem.write(
     ptr2int,            // address
     sizeof(intWrite)    // size
-    ) << intWrite;      // buffer
+) << intWrite;          // buffer
 ```
 
 Get success:  
@@ -36,7 +49,7 @@ Get success:
 bool ret = mem.read(
     ptr2int,            // address
     sizeof(intRead)     // size
-    ) >> intRead;       // buffer
+) >> intRead;           // buffer
 
 // OR
 
@@ -50,7 +63,7 @@ Get LastError:
 mem.read(
     ptr2int,            // address
     sizeof(intRead)     // size
-    ) >> intRead;       // buffer
+) >> intRead;           // buffer
 
 mem.lastError;          // last error
 ```
@@ -60,7 +73,7 @@ Get number of bytes written/read:
 mem.read(
     ptr2int,            // address
     sizeof(intRead)     // size
-    ) >> intRead;       // buffer
+) >> intRead;           // buffer
 
 mem.numberOfBytes;      // number of bytes
 ```
