@@ -9,8 +9,7 @@ class Mem {
     DWORD _pid = -1;
     HANDLE _pHandle = NULL;
     LPVOID _address = NULL;
-    SIZE_T _nSize = 0;
-    bool _isReadOrWrite = true;
+    SIZE_T _nSize = -1;
 
    public:
     SIZE_T numberOfBytes = 0;
@@ -27,43 +26,40 @@ class Mem {
         CloseHandle(_pHandle);
     }
 
-    template <typename TADDR>
-    Mem& read(TADDR address, SIZE_T nSize) {
-        _isReadOrWrite = true;
-        _address = (LPVOID)address;
+    Mem& operator()(SIZE_T nSize) {
         _nSize = nSize;
-        return *this;
     }
 
     template <typename TADDR>
-    Mem& write(TADDR address, SIZE_T nSize) {
-        _isReadOrWrite = false;
+    Mem& operator[](const TADDR& address) {
         _address = (LPVOID)address;
-        _nSize = nSize;
         return *this;
     }
 
-    BOOL operator<<(const LPVOID& buffer) {
+    template<typename TBUFFER>
+    BOOL operator<<(const TBUFFER& buffer) {
         BOOL ret;
-        if (!_isReadOrWrite) {
-            ret = WriteProcessMemory(_pHandle, _address, buffer, _nSize, &numberOfBytes);
-            if (!ret) lastError = GetLastError();
+        if (_nSize != -1) {
+            ret = WriteProcessMemory(_pHandle, _address, (LPVOID)&buffer, _nSize, &numberOfBytes);
         } else {
-            throw std::runtime_error("Not under WRITE mode.");
+            ret = WriteProcessMemory(_pHandle, _address, (LPVOID)&buffer, sizeof(buffer), &numberOfBytes);
         }
+
+        if (!ret) lastError = GetLastError();
         return ret;
     }
 
-    BOOL operator>>(const LPVOID& buffer) {
+    template<typename TBUFFER>
+    BOOL operator>>(const TBUFFER& buffer) {
         BOOL ret;
-        if (_isReadOrWrite) {
-            ret = ReadProcessMemory(_pHandle, _address, buffer, _nSize, &numberOfBytes);
-            if (!ret) lastError = GetLastError();
+        if (_nSize != -1) {
+            ret = ReadProcessMemory(_pHandle, _address, (LPVOID)&buffer, _nSize, &numberOfBytes);
         } else {
-            throw std::runtime_error("Not under READ mode.");
+            ret = ReadProcessMemory(_pHandle, _address, (LPVOID)&buffer, sizeof(buffer), &numberOfBytes);
         }
+        if (!ret) lastError = GetLastError();
         return ret;
     }
 };
 
-}
+}  // namespace PMem
