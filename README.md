@@ -1,8 +1,6 @@
 # Simpler-RPM-WPM
 A simpler way to do RPM or WPM  
 
-## Usage:  
-
 Before:
 ```cpp
 HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, 1144);
@@ -16,6 +14,8 @@ ReadProcessMemory(
 );
 ```
 
+## Usage  
+
 Basic usage:
 ```cpp
 #include "ProcessMemory.h"
@@ -28,52 +28,39 @@ PMem::Mem mem(
 );
 
 int* ptr2int = 0x61fef8;
+int intToWrite = 20000;
+int intToRead;
 
-// READ
-int intRead;
-mem.read(
-    ptr2int,            // address
-    sizeof(intRead)     // size
-) >> intRead;           // buffer
+// Set Address
+mem[ptr2int];
 
-// WRITE
-int intWrite = 10;
-mem.write(
-    ptr2int,            // address
-    sizeof(intWrite)    // size
-) << intWrite;          // buffer
+// Set nSize
+mem(sizeof(intToRead));
+
+// Read
+mem >> intToRead;
+
+// Write
+mem << intToWrite;
 ```
 
 Get success:  
 ```cpp
-bool ret = mem.read(
-    ptr2int,            // address
-    sizeof(intRead)     // size
-) >> intRead;           // buffer
+bool ret = mem >> intRead
 
 // OR
 
-if (mem.read(ptr2int, sizeof(intRead)) >> intRead) {
+if (mem >> intRead) {
     // on success
 }
 ```
 
 Get LastError:   
 ```cpp
-mem.read(
-    ptr2int,            // address
-    sizeof(intRead)     // size
-) >> intRead;           // buffer
-
 mem.lastError;          // last error
 ```
 
 Get number of bytes written/read:   
 ```cpp
-mem.read(
-    ptr2int,            // address
-    sizeof(intRead)     // size
-) >> intRead;           // buffer
-
 mem.numberOfBytes;      // number of bytes
 ```
