@@ -33,6 +33,7 @@ int intToRead;
 
 // Set Address
 mem[ptr2int];
+mem[-1]; // Auto size
 
 // Set nSize
 mem(sizeof(intToRead));
