@@ -20,9 +20,7 @@ Basic usage:
 ```cpp
 #include "ProcessMemory.h"
 
-...
-
-PMem::Mem mem(
+MPointer mptr(
     1144,               // process id
     PROCESS_ALL_ACCESS  // desired access rights
 );
@@ -32,36 +30,52 @@ int intToWrite = 20000;
 int intToRead;
 
 // Set Address
-mem[ptr2int];
+mptr[ptr2int];
 
 // Set nSize
-mem(sizeof(intToRead));
-mem(-1); // Auto size
+mptr(sizeof(intToRead));
+mptr(-1); // Auto size
 
 // Read
-mem >> intToRead;
+mptr >> &intToRead;
 
 // Write
-mem << intToWrite;
+mptr << &intToWrite;
+```
+
+Operators:  
+```cpp
+mptr + 0x98;
+mptr - 0x98;
+
+mptr++;
+mptr--;
 ```
 
 Get success:  
 ```cpp
-bool ret = mem >> intRead
+bool ret = mem >> &intRead
 
 // OR
 
-if (mem >> intRead) {
+if (mem >> &intRead) {
     // on success
 }
 ```
 
-Get LastError:   
+Public Members:   
 ```cpp
 mem.lastError;          // last error
+mem.numberOfBytes;      // number of bytes
 ```
 
-Get number of bytes written/read:   
+This is totally illegal, in my opinion.  
+And it is not recommended to use.
 ```cpp
-mem.numberOfBytes;      // number of bytes
+!mptr;  // Read the address with nSize we set
+        // And return the pointer(BYTE*) of the copy of the target memory 
+
+// Example:
+mptr[ptr2int];
+int myInt = *((int*)!mptr);
 ```
