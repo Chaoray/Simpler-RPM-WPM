@@ -43,8 +43,20 @@ mptr >> &intToRead;
 mptr << &intToWrite;
 ```
 
+You can do some combinations:
+```cpp
+int intToRead;
+mptr[ptr2int](sizeof(intToRead)) >> &intToRead;
+
+// Anything you want
+mptr[0x61fef8 + 0x21][ptr2int](-1)(sizeof(intToRead)) >> &intToRead;
+```
+
 Operators:  
 ```cpp
+mptr = (char*)0x61fef8;  // the same as mptr[0x61fef8], but safer
+
+// the followings will return the address after calculating
 mptr + 0x98;
 mptr - 0x98;
 
@@ -70,10 +82,10 @@ mem.numberOfBytes;      // number of bytes
 ```
 
 This is totally illegal, in my opinion.  
-And it is not recommended to use.
+Not recommended to use.
 ```cpp
 !mptr;  // Read the address with nSize we set
-        // And return the pointer(BYTE*) of the copy of the target memory 
+        // After that, return the pointer(BYTE*) of the copy of the target memory 
 
 // Example:
 mptr[ptr2int];
