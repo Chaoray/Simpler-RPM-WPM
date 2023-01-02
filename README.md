@@ -54,7 +54,7 @@ mptr[0x61fef8 + 0x21][ptr2int](-1)(sizeof(intToRead)) >> &intToRead;
 
 Operators:  
 ```cpp
-mptr = (char*)0x61fef8;  // the same as mptr[0x61fef8], but safer
+mptr = 0x61fef8;  // the same as mptr[0x61fef8], but safer
 
 // the followings will return the address after calculating
 mptr + 0x98;

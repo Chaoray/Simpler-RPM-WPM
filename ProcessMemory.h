@@ -1,12 +1,13 @@
 #include <windows.h>
 
 #include <stdexcept>
+#include <type_traits>
 
 class MPointer {
    private:
     DWORD _pid = -1;
     HANDLE _pHandle = NULL;
-    char* _address = NULL;
+    uintptr_t _address = (uintptr_t)nullptr;
     SIZE_T _nSize = -1;
 
    public:
@@ -29,43 +30,43 @@ class MPointer {
         return *this;
     }
 
-    char*& operator+(const int& offset) {
+    uintptr_t& operator+(const int& offset) {
         _address += offset;
         return _address;
     }
 
-    char*& operator-(const int& offset) {
+    uintptr_t& operator-(const int& offset) {
         _address -= offset;
         return _address;
     }
 
-    char*& operator++() {
+    uintptr_t& operator++() {
         _address++;
         return _address;
     }
 
-    char*& operator--() {
+    uintptr_t& operator--() {
         _address--;
         return _address;
     }
 
-    MPointer& operator=(char*& address) {
+    MPointer& operator=(uintptr_t& address) {
         _address = address;
         return *this;
     }
 
     template<typename TADDR>
     MPointer& operator[](const TADDR& address) {
-        _address = (char*)address;
+        _address = (uintptr_t)address;
         return *this;
     }
 
     BYTE* operator!() {
-        if (_address == NULL) return NULL;
+        if (!_address) return NULL;
 
         BYTE* buffer = new BYTE[_nSize];
         BOOL ret;
-        ret = ReadProcessMemory(_pHandle, _address, &buffer, _nSize, &numberOfBytes);
+        ret = ReadProcessMemory(_pHandle, (LPCVOID)_address, &buffer, _nSize, &numberOfBytes);
         if (!ret) lastError = GetLastError();
 
         return buffer;
@@ -73,12 +74,12 @@ class MPointer {
 
     template<typename TBUFFER>
     BOOL operator<<(const TBUFFER& buffer) {
-        if (_address == NULL) return FALSE;
+        if (!_address) return FALSE;
         BOOL ret;
         if (_nSize != -1) {
-            ret = WriteProcessMemory(_pHandle, _address, (LPCVOID)buffer, _nSize, &numberOfBytes);
+            ret = WriteProcessMemory(_pHandle, (LPVOID)_address, (LPCVOID)buffer, _nSize, &numberOfBytes);
         } else {
-            ret = WriteProcessMemory(_pHandle, _address, (LPCVOID)buffer, sizeof(buffer), &numberOfBytes);
+            ret = WriteProcessMemory(_pHandle, (LPVOID)_address, (LPCVOID)buffer, sizeof(buffer), &numberOfBytes);
         }
 
         if (!ret) lastError = GetLastError();
@@ -87,12 +88,12 @@ class MPointer {
 
     template<typename TBUFFER>
     BOOL operator>>(const TBUFFER& buffer) {
-        if (_address == NULL) return FALSE;
+        if (!_address) return FALSE;
         BOOL ret;
         if (_nSize != -1) {
-            ret = ReadProcessMemory(_pHandle, _address, (LPVOID)buffer, _nSize, &numberOfBytes);
+            ret = ReadProcessMemory(_pHandle, (LPCVOID)_address, (LPVOID)buffer, _nSize, &numberOfBytes);
         } else {
-            ret = ReadProcessMemory(_pHandle, _address, (LPVOID)buffer, sizeof(buffer), &numberOfBytes);
+            ret = ReadProcessMemory(_pHandle, (LPCVOID)_address, (LPVOID)buffer, sizeof(buffer), &numberOfBytes);
         }
         if (!ret) lastError = GetLastError();
         return ret;
