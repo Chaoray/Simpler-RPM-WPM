@@ -66,19 +66,19 @@ mptr--;
 
 Get success:  
 ```cpp
-bool ret = mem >> &intRead
+bool ret = mptr >> &intRead
 
 // OR
 
-if (mem >> &intRead) {
+if (mptr >> &intRead) {
     // on success
 }
 ```
 
 Public Members:   
 ```cpp
-mem.lastError;          // last error
-mem.numberOfBytes;      // number of bytes
+mptr.lastError;          // last error
+mptr.numberOfBytes;      // number of bytes
 ```
 
 This is totally illegal, in my opinion.  
