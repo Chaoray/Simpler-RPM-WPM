@@ -1,101 +1,95 @@
-#include <windows.h>
+#pragma once
 
-#include <stdexcept>
-#include <type_traits>
+#include <windows.h>
+#include <psapi.h>
 
 class MPointer {
    private:
     DWORD _pid = -1;
-    HANDLE _pHandle = NULL;
-    uintptr_t _address = (uintptr_t)nullptr;
-    SIZE_T _nSize = -1;
+    HANDLE _pHandle = nullptr;
+    uintptr_t _address = 0;
 
    public:
+    uintptr_t b = 0;
     SIZE_T numberOfBytes = 0;
     DWORD lastError = 0;
+
     MPointer(DWORD pid, DWORD desiredAccess) {
         _pid = pid;
         _pHandle = OpenProcess(desiredAccess, FALSE, (DWORD)pid);
-        if (_pHandle == NULL) {
-            throw std::runtime_error("Unable to get process handle.");
-        }
+        base();
     }
 
     ~MPointer() {
-        if(_pHandle != NULL) CloseHandle(_pHandle);
+        if (_pHandle != NULL) CloseHandle(_pHandle);
     }
 
-    MPointer& operator()(SIZE_T nSize) {
-        _nSize = nSize;
-        return *this;
-    }
-
-    uintptr_t& operator+(const int& offset) {
+    uintptr_t& operator+(const uintptr_t& offset) {
         _address += offset;
         return _address;
     }
 
-    uintptr_t& operator-(const int& offset) {
+    uintptr_t& operator-(const uintptr_t& offset) {
         _address -= offset;
         return _address;
     }
 
-    uintptr_t& operator++() {
-        _address++;
-        return _address;
-    }
-
-    uintptr_t& operator--() {
-        _address--;
-        return _address;
-    }
-
-    MPointer& operator=(uintptr_t& address) {
+    MPointer& operator[](const uintptr_t& address) {
         _address = address;
         return *this;
     }
 
-    template<typename TADDR>
-    MPointer& operator[](const TADDR& address) {
-        _address = (uintptr_t)address;
-        return *this;
-    }
+    uintptr_t base() {
+        if (!_pHandle) return 0;
 
-    BYTE* operator!() {
-        if (!_address) return NULL;
+        HMODULE lphModule[1024];
+        DWORD lpcbNeeded = 0;
 
-        BYTE* buffer = new BYTE[_nSize];
-        BOOL ret;
-        ret = ReadProcessMemory(_pHandle, (LPCVOID)_address, &buffer, _nSize, &numberOfBytes);
-        if (!ret) lastError = GetLastError();
+        if (!EnumProcessModules(_pHandle, lphModule, sizeof(lphModule), &lpcbNeeded))
+            return 0;
 
-        return buffer;
-    }
+        TCHAR szModName[MAX_PATH];
+        if (!GetModuleFileNameEx(_pHandle, lphModule[0], szModName, sizeof(szModName) / sizeof(TCHAR)))
+            return 0;
 
-    template<typename TBUFFER>
-    BOOL operator<<(const TBUFFER& buffer) {
-        if (!_address) return FALSE;
-        BOOL ret;
-        if (_nSize != -1) {
-            ret = WriteProcessMemory(_pHandle, (LPVOID)_address, (LPCVOID)buffer, _nSize, &numberOfBytes);
-        } else {
-            ret = WriteProcessMemory(_pHandle, (LPVOID)_address, (LPCVOID)buffer, sizeof(buffer), &numberOfBytes);
+        if (this->b == 0) {
+            this->b = reinterpret_cast<uintptr_t>(lphModule[0]);
         }
 
+        return reinterpret_cast<uintptr_t>(lphModule[0]);
+    }
+
+    template <typename BUFFER>
+    bool write(BUFFER* buffer) {
+        if (!_address) return FALSE;
+
+        BOOL ret;
+        ret = WriteProcessMemory(
+            _pHandle,
+            reinterpret_cast<LPVOID>(_address),
+            reinterpret_cast<LPCVOID>(buffer),
+            sizeof(buffer),
+            &numberOfBytes);
+
         if (!ret) lastError = GetLastError();
+
         return ret;
     }
 
-    template<typename TBUFFER>
-    BOOL operator>>(const TBUFFER& buffer) {
+    template <typename BUFFER>
+    bool read(BUFFER* buffer) {
         if (!_address) return FALSE;
+
         BOOL ret;
-        if (_nSize != -1) {
-            ret = ReadProcessMemory(_pHandle, (LPCVOID)_address, (LPVOID)buffer, _nSize, &numberOfBytes);
-        } else {
-            ret = ReadProcessMemory(_pHandle, (LPCVOID)_address, (LPVOID)buffer, sizeof(buffer), &numberOfBytes);
-        }
+        ret = ReadProcessMemory(
+            _pHandle,
+            reinterpret_cast<LPCVOID>(_address),
+            reinterpret_cast<LPVOID>(buffer),
+            sizeof(buffer),
+            &numberOfBytes);
+
         if (!ret) lastError = GetLastError();
+
         return ret;
     }
 };
