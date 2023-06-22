@@ -10,14 +10,14 @@ class MPointer {
     uintptr_t _address = 0;
 
    public:
-    uintptr_t b = 0;
+    uintptr_t base = 0;
     SIZE_T numberOfBytes = 0;
     DWORD lastError = 0;
 
     MPointer(DWORD pid, DWORD desiredAccess) {
         _pid = pid;
-        _pHandle = OpenProcess(desiredAccess, FALSE, (DWORD)pid);
-        base();
+        _pHandle = OpenProcess(desiredAccess, FALSE, pid);
+        this->base = getBaseAddress();
     }
 
     ~MPointer() {
@@ -34,12 +34,13 @@ class MPointer {
         return _address;
     }
 
-    MPointer& operator[](const uintptr_t& address) {
-        _address = address;
+    template <typename TADDRESS>
+    MPointer& operator[](TADDRESS address) {
+        _address = reinterpret_cast<uintptr_t>(address);
         return *this;
     }
 
-    uintptr_t base() {
+    uintptr_t getBaseAddress() {
         if (!_pHandle) return 0;
 
         HMODULE lphModule[1024];
@@ -52,15 +53,11 @@ class MPointer {
         if (!GetModuleFileNameEx(_pHandle, lphModule[0], szModName, sizeof(szModName) / sizeof(TCHAR)))
             return 0;
 
-        if (this->b == 0) {
-            this->b = reinterpret_cast<uintptr_t>(lphModule[0]);
-        }
-
         return reinterpret_cast<uintptr_t>(lphModule[0]);
     }
 
-    template <typename BUFFER>
-    bool write(BUFFER* buffer) {
+    template <typename TBUFFER>
+    bool write(TBUFFER* buffer) {
         if (!_address) return FALSE;
 
         BOOL ret;
@@ -76,8 +73,8 @@ class MPointer {
         return ret;
     }
 
-    template <typename BUFFER>
-    bool read(BUFFER* buffer) {
+    template <typename TBUFFER>
+    bool read(TBUFFER* buffer) {
         if (!_address) return FALSE;
 
         BOOL ret;

@@ -25,7 +25,7 @@ MPointer mptr(
     PROCESS_ALL_ACCESS  // desired access rights
 );
 
-int* ptr2int = 0x61fef8;
+int* ptr2int = reinterpret_cast<int*>(0x61fef8);
 int intToWrite = 20000;
 int intToRead;
 
@@ -50,15 +50,16 @@ Operators:
 // the followings will return the address after calculating
 mptr + 0x98;
 mptr - 0x98;
+mptr[mptr.base + 0x98];
 ```
 
 Get success:  
 ```cpp
-bool ret = mptr.read<int>(&intRead);
+bool ret = mptr.read<int>(&intToRead);
 
 // OR
 
-if (mptr.read<int>(&intRead)) {
+if (mptr.read<int>(&intToRead)) {
     // on success
 }
 ```
@@ -67,6 +68,6 @@ Public Members:
 ```cpp
 mptr.lastError;          // last error
 mptr.numberOfBytes;      // number of bytes
-mptr.b;                  // base address of the process
-mptr.base();             // get base address of the process
+mptr.base;               // base address of the process, initialized when constructing
+mptr.getBaseAddress();   // get base address of the process
 ```
