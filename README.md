@@ -36,7 +36,7 @@ mptr[ptr2int];
 mptr.read<int>(&intToRead);
 
 // Write
-mptr.read<int>(&intToWrite);
+mptr.write<int>(&intToWrite);
 ```
 
 Some combinations:
